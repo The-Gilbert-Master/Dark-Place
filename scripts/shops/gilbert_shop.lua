@@ -1,4 +1,4 @@
-local BorShop, super = Class(Shop, "borshop")
+local BorShop, super = Class(Shop, "gilbert_shop")
 
 function BorShop:init()
     super.init(self)
@@ -44,7 +44,7 @@ function BorShop:init()
 
         self:registerItem("healitem", { price = 50, description = "HealItem\n+?? HP" })
         self:registerItem("borstuff/substance", { stock = 10, color = { 0, 127 / 255, 0, 1 } })
-        --self:registerItem("borstuff/borsmanual", {stock = 3})
+        self:registerItem("healitem", {stock = 3})
         self:registerItem("maximtomato", { bonuses = { defense = 10 } })
 
         self:registerTalk("Party")
@@ -58,7 +58,7 @@ function BorShop:init()
         self.background = "ui/shop/gilbertshop"
         self.shop_music = "deltarune/dogcheck"
     end
-end
+
 
 function BorShop:startTalk(talk)
     if talk == "Party" then
@@ -82,5 +82,6 @@ function BorShop:startTalk(talk)
         self:startDialogue({ "* Example Talk 6" })
     end
 end
+
 
 return BorShop
