@@ -3,7 +3,6 @@ modRequire("scripts/main/debugsystem")
 modRequire("scripts/main/utils_lore")
 modRequire("scripts/main/minigames_glue")
 modRequire("scripts/main/warp_bin")
-Speen = modRequire("scripts/main/ow_speen")
 modRequire("scripts/main/ow_taunt")
 modRequire("scripts/main/battle_taunt")
 modRequire("scripts/main/live_bulborb_reaction")
@@ -31,6 +30,8 @@ function Mod:init()
         "fwood/",
         "​"
     }
+
+    self.rpc_state = nil
 
     self:initTaunt()
     self:initBattleTaunt()
@@ -418,22 +419,27 @@ function Mod:init()
             end
         end
     end)
+
+    Utils.hook(Textbox, "init", function(orig, self, x, y, width, height, default_font, default_font_size, battle_box)
+        default_font = default_font
+            or Kristal.callEvent("getDefaultDialogTextFont")
+        orig(self, x, y, width, height, default_font, default_font_size, battle_box)
+    end)
 end
 
 function Mod:getLightBattleMenuOffsets()
     return { -- {soul, text}
-            ["ACT"] = {12, 16},
-            ["ITEM"] = {0, 0},
-            ["SPELL"] = {12, 16},
-            ["MERCY"] = {0, 0}, --doesn't matter lmao
-            ["SEND"] = {0, 0},
-            ["SKILL"] = {12, 16},
-        }
+        ["ACT"] = {12, 16},
+        ["ITEM"] = {0, 0},
+        ["SPELL"] = {12, 16},
+        ["MERCY"] = {0, 0}, --doesn't matter lmao
+        ["SEND"] = {0, 0},
+        ["SKILL"] = {12, 16},
+    }
 end
 
 function Mod:postInit(new_file)
     if self.legacy_kristal then
-        Game.world.music:stop()
         Game.world:startCutscene("flowey_check")
         return
     end
@@ -447,7 +453,7 @@ function Mod:postInit(new_file)
     }
     Kristal.callEvent("setItemsList", items_list)
 
-    Mod:funnytitle()
+    self:funnytitle()
 
     self:initializeImportantFlags(new_file)
 
@@ -463,7 +469,7 @@ function Mod:postInit(new_file)
             Game.world:startCutscene("_main.introcutscene")
         end
     end
-    
+
     if not Game:getFlag("booty_time") then
         Game:addFlag("booty_cd", 1)
         if Game:getFlag("booty_cd") >= 5 then
@@ -476,7 +482,7 @@ function Mod:postInit(new_file)
     end
 
     self:initBulborb()
-    
+
     self:initializeEvents()
 end
 
@@ -534,17 +540,11 @@ function Mod:initializeImportantFlags(new_file)
     end
 
     -- Create save flags for costumes if they don't already exist
-    if Game:getFlag("YOU_costume") == nil then
-        Game:setFlag("YOU_costume", 0)
-    end
-    if Game:getFlag("susie_costume") == nil then
-        Game:setFlag("susie_costume", 0)
-    end
-    if Game:getFlag("kris_costume") == nil then
-        Game:setFlag("kris_costume", 0)
-    end
-    if Game:getFlag("brandon_costume") == nil then
-        Game:setFlag("brandon_costume", 0)
+    for _,char in ipairs({"YOU", "susie", "kris", "brenda"}) do
+        local cos_flag = char.."_costume"
+        if Game:getFlag(cos_flag) == nil then
+            Game:setFlag(cos_flag, 0)
+        end
     end
 
     if new_file then
@@ -606,24 +606,24 @@ function Mod:initializeImportantFlags(new_file)
         likely_old_save = true
         table.insert(old_save_issues, "Save is probably from before the relationship system was added.")
 
-        Game:getPartyMember("YOU").opinions = { kris = 50, susie = 50, noelle = 50, dess = 40, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("kris").opinions = { YOU = 50, susie = 120, noelle = 70, dess = 20, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 70, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("susie").opinions = { YOU = 50, kris = 120, noelle = 120, dess = 20, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 60, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("noelle").opinions = { YOU = 50, kris = 70, susie = 400, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 100, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("dess").opinions = { YOU = 50, kris = 70, susie = 50, noelle = 100, brandon = 60, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 60, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 60, mario = 35, pauling = 50 }
-        Game:getPartyMember("brandon").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 30, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 80, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 70, mario = 50, pauling = 50 }
-        Game:getPartyMember("dumbie").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 10, brandon = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("ostarwalker").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("berdly").opinions = { YOU = 50, kris = 80, susie = 150, noelle = 120, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("bor").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 10, brandon = 80, dumbie = 50, ostarwalker = 50, berdly = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("robo_susie").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 100, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, noyno = 120, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("noyno").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 0, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 120, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("iphone").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("frisk2").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("alseri").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, jamm = 50, mario = 50, pauling = 50 }
-        Game:getPartyMember("jamm").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 15, brandon = 80, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, mario = 65, pauling = 50 }
-        Game:getPartyMember("mario").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 65, pauling = 50 }
-        Game:getPartyMember("pauling").opinions = { kris = 40, YOU = 40, susie = 40, noelle = 40, dess = 40, brandon = 40, dumbie = 40, ostarwalker = 40, berdly = 40, bor = 40, robo_susie = 40, noyno = 40, iphone = 40, frisk2 = 40, alseri = 40, jamm = 40, mario = 40 }
+        Game:getPartyMember("YOU").opinions = { kris = 50, susie = 50, noelle = 50, dess = 40, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("kris").opinions = { YOU = 50, susie = 120, noelle = 70, dess = 20, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 70, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("susie").opinions = { YOU = 50, kris = 120, noelle = 120, dess = 20, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 60, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("noelle").opinions = { YOU = 50, kris = 70, susie = 400, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 100, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("dess").opinions = { YOU = 50, kris = 70, susie = 50, noelle = 100, brenda = 60, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 60, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 60, mario = 35, pauling = 50 }
+        Game:getPartyMember("brenda").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 30, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 80, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 70, mario = 50, pauling = 50 }
+        Game:getPartyMember("dumbie").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 10, brenda = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("ostarwalker").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("berdly").opinions = { YOU = 50, kris = 80, susie = 150, noelle = 120, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("bor").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 10, brenda = 80, dumbie = 50, ostarwalker = 50, berdly = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("robo_susie").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 100, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, noyno = 120, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("noyno").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 0, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 120, iphone = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("iphone").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, frisk2 = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("frisk2").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, alseri = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("alseri").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, jamm = 50, mario = 50, pauling = 50 }
+        Game:getPartyMember("jamm").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 15, brenda = 80, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, mario = 65, pauling = 50 }
+        Game:getPartyMember("mario").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 65, pauling = 50 }
+        Game:getPartyMember("pauling").opinions = { kris = 40, YOU = 40, susie = 40, noelle = 40, dess = 40, brenda = 40, dumbie = 40, ostarwalker = 40, berdly = 40, bor = 40, robo_susie = 40, noyno = 40, iphone = 40, frisk2 = 40, alseri = 40, jamm = 40, mario = 40 }
     end
 
     if new_file or not Game:getFlag("darkess_beans") then
@@ -651,7 +651,7 @@ function Mod:initializeImportantFlags(new_file)
         addOpinionsToParty("susie", { mario = 50 })
         addOpinionsToParty("noelle", { mario = 50 })
         addOpinionsToParty("dess", { mario = 35 })
-        addOpinionsToParty("brandon", { mario = 50 })
+        addOpinionsToParty("brenda", { mario = 50 })
         addOpinionsToParty("dumbie", { mario = 50 })
         addOpinionsToParty("ostarwalker", { mario = 50 })
         addOpinionsToParty("berdly", { mario = 50 })
@@ -662,7 +662,7 @@ function Mod:initializeImportantFlags(new_file)
         addOpinionsToParty("frisk2", { mario = 50 })
         addOpinionsToParty("alseri", { mario = 50 })
         addOpinionsToParty("jamm", { mario = 65 })
-        Game:getPartyMember("mario").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brandon = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 65 }
+        Game:getPartyMember("mario").opinions = { YOU = 50, kris = 50, susie = 50, noelle = 50, dess = 50, brenda = 50, dumbie = 50, ostarwalker = 50, berdly = 50, bor = 50, robo_susie = 50, noyno = 50, iphone = 50, frisk2 = 50, alseri = 50, jamm = 65 }
     end
 
     if new_file or pauling.opinions == nil then
@@ -674,7 +674,7 @@ function Mod:initializeImportantFlags(new_file)
         addOpinionsToParty("susie", { pauling = 50 })
         addOpinionsToParty("noelle", { pauling = 50 })
         addOpinionsToParty("dess", { pauling = 50 })
-        addOpinionsToParty("brandon", { pauling = 50 })
+        addOpinionsToParty("brenda", { pauling = 50 })
         addOpinionsToParty("dumbie", { pauling = 50 })
         addOpinionsToParty("ostarwalker", { pauling = 50 })
         addOpinionsToParty("berdly", { pauling = 50 })
@@ -686,51 +686,65 @@ function Mod:initializeImportantFlags(new_file)
         addOpinionsToParty("alseri", { pauling = 50 })
         addOpinionsToParty("jamm", { pauling = 50 })
         addOpinionsToParty("mario", { pauling = 50 })
-        Game:getPartyMember("pauling").opinions = { YOU = 40, kris = 40, susie = 40, noelle = 40, dess = 40, brandon = 40, dumbie = 40, ostarwalker = 40, berdly = 40, bor = 40, robo_susie = 40, noyno = 40, iphone = 40, frisk2 = 40, alseri = 40, jamm = 40, mario = 40 }
+        Game:getPartyMember("pauling").opinions = { YOU = 40, kris = 40, susie = 40, noelle = 40, dess = 40, brenda = 40, dumbie = 40, ostarwalker = 40, berdly = 40, bor = 40, robo_susie = 40, noyno = 40, iphone = 40, frisk2 = 40, alseri = 40, jamm = 40, mario = 40 }
     end
 
-
-    -- Add here as needed
-    local gifts_data = {
+    self.pc_gifts_data = {
         UNDERTALE = {
-            file = "/undertale.ini",
-            received = false,
+            file = "undertale.ini",
             item_id = "heart_locket",
-            prefix_os = {Windows = "Local/UNDERTALE", Linux = ".config/UNDERTALE", OS_X = "Application Support/com.tobyfox.undertale"}
+            prefix_os = {Windows = "Local/UNDERTALE", Linux = "%XDG_CONFIG_HOME%/UNDERTALE", OS_X = "com.tobyfox.undertale"},
+            wine_steam_appid = 391540
         },
         DELTARUNE = {
-            file = "/dr.ini",
-            received = false,
+            file = "dr.ini",
             item_id = "egg",
-            prefix_os = {Windows = "Local/DELTARUNE", Linux = ".config/DELTARUNE", OS_X = "Application Support/com.tobyfox.deltarune"}
+            prefix_os = {Windows = "Local/DELTARUNE", Linux = "%XDG_CONFIG_HOME%/DELTARUNE", OS_X = "com.tobyfox.deltarune"},
+            wine_steam_appid = 1690940
         },
         UTY = {
             name = "UNDERTALE YELLOW",
-            file = {"/Save.sav", "/Save02.sav", "/Controls.sav", "/tempsave.sav"},
-            received = false,
+            file = {"Save.sav", "Save02.sav", "Controls.sav", "tempsave.sav"},
             item_id = "wildrevolver",
-            prefix_os = {Windows = "Local/Undertale_Yellow", Linux = ".config/Undertale_Yellow"}
+            prefix_os = {Windows = "Local/Undertale_Yellow", Linux = "%XDG_CONFIG_HOME%/Undertale_Yellow"}
         },
         PT = {
             name = "PIZZA TOWER",
-            file = {"/saves/saveData1.ini", "/saves/saveData2.ini", "/saves/saveData3.ini"},
-            received = false,
+            file = {"saves/saveData1.ini", "saves/saveData2.ini", "saves/saveData3.ini"},
             item_id = "pizza_toque",
-            prefix_os = {Windows = "Roaming/PizzaTower_GM2"} -- Not sure what the Mac OS_X or Linux directories for PT are. If anyone else knows tho, feel free to add them in here lol.
+            -- Not sure what the Mac OS_X or Linux directories for PT are.
+            -- If anyone else knows tho, feel free to add them in here lol.
+            prefix_os = {Windows = "Roaming/PizzaTower_GM2"},
+            wine_steam_appid = 2231450
         },
+
         -- Use "KR_" as a prefix to check for a Kristal Mod instead
-        KR_frozen_heart = {received = false, item_id = "angelring"},
-        KR_wii_bios = {received = false, item_id = "wiimote"},
-        ["KR_acj_deoxynn/act1"] = {name = "Deoxynn Act 1", received = false, item_id = "victory_bell"}
+        KR_frozen_heart = {item_id = "angelring"},
+        KR_wii_bios = {item_id = "wiimote"},
+        ["KR_acj_deoxynn/act1"] = {name = "Deoxynn Act 1", item_id = "victory_bell"}
     }
-    if not Game:getFlag("pc_gifts_data") then
+    local function generateStatusTable(data)
+        local status = {}
+        for game, info in pairs(data) do
+            status[game] = info.received or false
+        end
+        return status
+    end
+    if Game:getFlag("pc_gifts_data") then
+        assert(not new_file)
+        likely_old_save = true
+        table.insert(old_save_issues, "Save is probably from before the PC gift data saving behavior was reworked.")
+        Game:setFlag("pc_gifts_status", generateStatusTable(Game:getFlag("pc_gifts_data")))
+        Game:setFlag("pc_gifts_data", nil)
+    end
+    if not Game:getFlag("pc_gifts_status") then
         if not new_file then
             likely_old_save = true
             table.insert(old_save_issues, "Save is probably from before the PC was added.")
         end
-        Game:setFlag("pc_gifts_data", gifts_data)
+        Game:setFlag("pc_gifts_status", generateStatusTable(self.pc_gifts_data))
     else
-        Game:setFlag("pc_gifts_data", Utils.merge(gifts_data, Game:getFlag("pc_gifts_data"), true))
+        Game:setFlag("pc_gifts_status", Utils.merge(generateStatusTable(self.pc_gifts_data), Game:getFlag("pc_gifts_status")))
     end
 
     ----------
@@ -819,17 +833,17 @@ function Mod:getActionButtons(battler, buttons)
         Utils.removeFromTable(buttons, "fight")
     end
 
-    if battler.chara.id == "susie" and Game.battle.encounter.id == "brandon" then
+    if battler.chara.id == "susie" and Game.battle.encounter.id == "brenda" then
         Utils.removeFromTable(buttons, "fight")
     end
-    if battler.chara.id == "dess" and Game.battle.encounter.id == "brandon" then
+    if battler.chara.id == "dess" and Game.battle.encounter.id == "brenda" then
         if Game:getFlag("dungeonkiller") and not Game:getFlag("b_fight_dess") then
             -- do nothing
         else
             Utils.removeFromTable(buttons, "fight")
         end
     end
-    if battler.chara.id == "jamm" and Game.battle.encounter.id == "brandon" and not Game:getFlag("dungeonkiller") then
+    if battler.chara.id == "jamm" and Game.battle.encounter.id == "brenda" and not Game:getFlag("dungeonkiller") then
         Utils.removeFromTable(buttons, "fight")
     end
     return buttons
@@ -1004,4 +1018,13 @@ function Mod:loadObject(world, name, properties)
     if name:lower() == "vapor_bg" then
         return VaporBG(properties["mountains"])
     end
+end
+
+-- this is so that "playing ..." is the first line and "in a minigame: ..." is the second
+
+function Mod:getPresenceDetails()
+    return "Playing "..Kristal.getModOption("name")
+end
+function Mod:getPresenceState()
+    return self.rpc_state
 end

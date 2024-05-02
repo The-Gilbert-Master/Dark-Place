@@ -53,11 +53,19 @@ function item:onLightBattleUse(target)
 end
 
 function item:getWorldUseText(target)
-    return "* (You down the Root Beer. The\ncarbonation tingles!)"
+    if target.id == Game.party[1].id then
+        return "* (You down the Root Beer.[wait:5] The\ncarbonation tingles!)"
+    else
+        return "* ("..target:getName().." downs the Root Beer.)"
+    end
 end
 
 function item:getLightBattleText(user, target)
-    return "* (You down the Root Beer. The\ncarbonation tingles!)"
+    if target.chara.id == Game.battle.party[1].chara.id then
+        return "* (You down the Root Beer.[wait:5] The\ncarbonation tingles!)"
+    else
+        return "* ("..target.chara:getName().." downs the Root Beer.)"
+    end
 end
 
 return item

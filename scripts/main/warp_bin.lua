@@ -76,7 +76,7 @@ Mod.warp_bin_codes = {
     ["SLIDER"] = { result = "slider_start" },
     ["PIKNF404"] = {
         result = function(cutscene)
-            cutscene:text("* Area not complete yet,[wait:5] check back in a later commit.[wait:10] -BrandonK7200")
+            cutscene:text("* Area not complete yet,[wait:5] check back in a later commit.[wait:10] -BrendaK7200")
         end
     },
     ["CASTLERD"] = {result = "castle_path/start"},
@@ -109,4 +109,4 @@ end
 
 -- if you were looking for addBinCode... just tamper with the table on your own
 
--- the actual logic is implemented in scripts/world/cutscenes/spamroom.lua -> warpbin
+-- the actual logic is implemented in scripts/world/cutscenes/warp_bin.lua

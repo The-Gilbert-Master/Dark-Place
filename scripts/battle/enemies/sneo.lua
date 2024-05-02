@@ -16,6 +16,7 @@ function SpamtonNEO:init()
         "sneo/flyingheads",
         "sneo/firework_pipis",
         "sneo/phoneshooter",
+        "sneo/pendulum",
     }
 
 	self.boss = true
@@ -42,14 +43,14 @@ function SpamtonNEO:init()
 
     self:registerAct("Snap")
     self:registerAct("SnapAll", "", "all")
-	
+
+    self.sneo_attack = 0
+    self.sneo_turn = 0
 	
     self.timer = 0
     self.mode = "normal"
-
     self.old_x = self.x
     self.old_y = self.y
-
     self.ease = false
     self.ease_timer = 0
 end
@@ -78,6 +79,9 @@ function SpamtonNEO:update()
         elseif self.mode == "move_back" then
             wanted_x = 518 + 300
             wanted_y = 250
+        elseif self.mode == "move_up" then
+            wanted_x = 518
+            wanted_y = 250 - 300
         elseif self.mode == "shoot" then
             wanted_x = 518 + (math.cos(self.timer * 0.04) * 40)
             wanted_y = 250 + (math.cos(self.timer * 0.2) * 10)
@@ -104,17 +108,17 @@ end
 function SpamtonNEO:onAct(battler, name)
 	if name == "Check" then
 	    if battler.chara.id == "YOU" then
-            --Assets.playSound("check")
+            Assets.playSound("check")
         end
 	    if self.check_count == 0 then
 		    self.check_count = self.check_count + 1
 		    return {
-		    "* SPAMTON NEO - YOU WON'T FIND\nHIGHER ATTACK AND DEFENSE\nANYWHERE ELSE!!!",
-		    '* THE SMOOTH TASTE OF NEO "WAKE\nUP AND TASTE THE [color:red]PAIN[color:reset]".'
+		    "* SPAMTON NEO - BEST UPGRADED ATTACK AND DEFENSE IN TOWN!!!\nFIT FOR A [[Big Shot]]!",
+		    '* (DISCLAIMER: STILL A LITTLE\nBIT "[color:yellow]SHAKY[color:reset]").'
 		    }
 		else
 		    return {
-		    "* Spamton Neo - Still without a heart,[wait:5] and still his own worst invention.",
+		    "* Spamton Neo - Just as desparate,[wait:5] as he was before...",
 		    }
 		end
 	elseif name == "Snap" then

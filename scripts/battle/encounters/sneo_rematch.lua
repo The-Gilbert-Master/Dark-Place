@@ -22,11 +22,23 @@ function SNEORematch:init()
     end
 end
 
+function SNEORematch:beforeStateChange(old, new)
+    if new == "ENEMYDIALOGUE" then
+        local cutscene = Game.battle:startCutscene("sneo_rematch.dialogue_test")
+        cutscene:after(function()
+            Game.battle:setState("DIALOGUEEND")
+        end)
+    end
+end
+
 function SNEORematch:onBattleInit()
     super.onBattleInit(self)
     if self.boss_rush == true then
         Game.battle.dojo_bg = DojoBG({1, 1, 1})
         Game.battle:addChild(Game.battle.dojo_bg)
+    else
+        Game.battle.sneo_bg = SpamtonBG()
+        Game.battle:addChild(Game.battle.sneo_bg)
     end
 end
 
