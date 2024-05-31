@@ -16,6 +16,7 @@ function Brenda:init()
     self.defense = 3
     self.money = 0
     self.experience = 0
+    self.tired_percentage = 0
 
     self.boss = true
     self.spare_points = 0
@@ -94,12 +95,16 @@ function Brenda:onAct(battler, name)
             end
         end
     elseif name == "J-Console" then
-        if self.comfort == 2 then
-            
-            return
-        else
-            return "* But you didn't know what to say..."
-        end
+        if Game:getFlag("dungeonkiller") then
+			-- idk whatever you want to do here
+		else
+			if self.comfort == 2 then
+				Game.battle:startActCutscene("brenda", "comfort3")
+				return
+			else
+				return "* But you didn't know what to say..."
+			end
+		end
     elseif name == "X-Console" then
         if self.comfort == 3 then
             

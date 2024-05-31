@@ -20,7 +20,9 @@ function Mod:init()
     MUSIC_PITCHES["ruins_beta"] = 0.8
 
     MUSIC_VOLUMES["deltarune/queen_car_radio"] = 0.8
+    MUSIC_VOLUMES["deltarune/spamton_neo_mix_ex_wip"] = 0.7
     MUSIC_VOLUMES["marble_ft_ultra"] = 0.8
+    MUSIC_VOLUMES["beasts"] = 0.7
 
     self.voice_timer = 0
 
@@ -36,6 +38,7 @@ function Mod:init()
     self:initTaunt()
     self:initBattleTaunt()
     Speen:init()
+    Gangnam:init()
     self:initMinigameHooks()
 
     -- v0.8.1 getSoulOffset absence HACK
@@ -866,6 +869,7 @@ function Mod:postUpdate()
     self:updateBattleTaunt()
     self:updateBulborb()
     Speen:update()
+    Gangnam:update()
 
     if Game.save_name == "MERG" then
         for _, party in ipairs(Game.party) do
@@ -952,7 +956,7 @@ function Mod:onKeyPressed(key)
         return
     end
 
-    if Game.world and Game.world.state == "GAMEPLAY" and key == "r" then
+    if Game.state == "OVERWORLD" and Game.world and Game.world.state == "GAMEPLAY" and Input.is("relationships", key) then
         Assets.stopAndPlaySound("ui_select")
         Game.world:openMenu(DarkRelationshipsMenu())
     end

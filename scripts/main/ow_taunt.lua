@@ -18,7 +18,7 @@ end
 function Mod:updateTaunt()
     if not (OVERLAY_OPEN or TextInput.active)
         and self:isTauntingAvaliable()
-        and Input.pressed("v", false)
+        and Input.pressed("taunt", false)
         and not self.taunt_lock_movement
         and (Game.state == "OVERWORLD" and Game.world.state == "GAMEPLAY"
             and not Game.world:hasCutscene() and not Game.lock_movement)
@@ -27,7 +27,7 @@ function Mod:updateTaunt()
         Game.world.player:setState("WALK")
         Game.world.player.running = false
         for _, follower in ipairs(Game.world.followers) do
-            if follower:getTarget() == self and follower.state == "RUN" then
+            if follower:getTarget() == Game.world.player and follower.state == "RUN" then
                 follower.state_manager:setState("WALK")
                 follower.running = false
             end

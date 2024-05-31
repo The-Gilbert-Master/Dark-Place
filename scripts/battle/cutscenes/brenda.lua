@@ -18,7 +18,20 @@ return {
         cutscene:text("* you're like one of the few people that actually tollerate my existence", "genuine_b", "dess")
         cutscene:text("* why don't we just talk it out", "neutral", "dess")
         cutscene:text("* ...", "shaded_b", "brenda")
-        cutscene:text("* (Dess...[wait:10] I didn't know you cared about him...)", "sad", "susie")
+        cutscene:text("* (Dess...[wait:10] I didn't know you cared about her...)", "sad", "susie")
+        brenda:addMercy(10)
+        brenda.comfort = brenda.comfort + 1
+    end,
+
+    comfort3 = function(cutscene)
+        local brenda = Game.battle:getEnemyBattler("brenda")
+        cutscene:text("* Brenda,[wait:5] I get that we may have our differences sometimes...", "nervous_left", "jamm")
+        cutscene:text("* But you're one of the few people who help keep me sane.", "worried", "jamm")
+        cutscene:text("* I may not have shown it much,[wait:5] but I really appreciate you.", "wink", "jamm")
+        cutscene:text("* Thank you so much for being my friend,[wait:5] Brenda.", "side_smile", "jamm")
+        cutscene:text("* Dess is right.[wait:10]\n* Let's talk it out over some tea.", "worried", "jamm")
+        cutscene:text("* Wh...", "shaded_b", "brenda")
+        cutscene:text("* (Jamm... [wait:10]I didn't know you could be so...)", "sad", "susie")
         brenda:addMercy(10)
         brenda.comfort = brenda.comfort + 1
     end,

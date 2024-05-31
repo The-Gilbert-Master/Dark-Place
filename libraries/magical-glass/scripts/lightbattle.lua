@@ -1212,6 +1212,13 @@ function LightBattle:onStateChange(old,new)
                 enemy:onEncounterTransitionOut(enemy == self.encounter_context, self.encounter)
             end
         end
+
+        local enemies = {}
+        for k,v in pairs(self.enemy_world_characters) do
+            table.insert(enemies, v)
+        end
+        self.encounter:onReturnToWorld(enemies)
+        
         Game.fader:transition(function() self:returnToWorld() end, nil, {speed = 10/30})
 
     elseif new == "DEFENDINGBEGIN" then
@@ -1461,6 +1468,26 @@ function LightBattle:returnToWorld()
     end
 
     self.encounter:setFlag("done", true)
+
+    local all_enemies = {}
+    Utils.merge(all_enemies, self.defeated_enemies)
+    Utils.merge(all_enemies, self.enemies)
+    for _,enemy in ipairs(all_enemies) do
+        local world_chara = self.enemy_world_characters[enemy]
+        if world_chara then
+            world_chara.visible = true
+        end
+        if not enemy.exit_on_defeat and world_chara and world_chara.parent then
+            if world_chara.onReturnFromBattle then
+                world_chara:onReturnFromBattle(self.encounter, enemy)
+            end
+        end
+    end
+    if self.encounter_context and self.encounter_context:includes(ChaserEnemy) then
+        for _,enemy in ipairs(self.encounter_context:getGroupedEnemies(true)) do
+            enemy:onEncounterEnd(enemy == self.encounter_context, self.encounter)
+        end
+    end
 
     self.music:stop()
     if self.resume_world_music then

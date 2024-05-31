@@ -13,8 +13,8 @@ return {
   nextobjectid = 15,
   properties = {
     ["light"] = true,
-    ["music"] = "steamworks_overworld",
-    ["name"] = "Steamw. - Raised Path"
+    ["music"] = "undertale_yellow/steamworks_overworld",
+    ["name"] = "Steamworks - Raised Path"
   },
   tilesets = {
     {

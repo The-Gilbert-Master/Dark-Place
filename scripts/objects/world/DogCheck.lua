@@ -96,9 +96,14 @@ function DogCheck:start()
         playSong("dance_of_dog", 0.95, 1.05)
     elseif self.variant == "sleep" then
         createDog("misc/dog_sleep", 0.8)
-        local song_here = Utils.pick({"deltarune/dogcheck", "results", "sigh_of_dog", "dogcheck_anniversary"})
-        local song_is_sog = song_here == "sigh_of_dog"
-        playSong(song_here, song_is_sog and 0.8 or 1, 1)
+        local song_here = Utils.pick({"dogcheck", "results", "sigh_of_dog", "dogcheck_anniversary"})
+        local song_is_sog = song_here == "sigh_of_dog" or song_here == "dogcheck"
+
+        if song_here == "dogcheck" then
+            playSong(song_here, song_is_sog and 0.9 or 1, 1)
+		else
+            playSong(song_here, song_is_sog and 0.8 or 1, 1)
+        end
     elseif self.variant == "maracas" then
         createDog(cust_sprites_base.."/dog_maracas", 0.1, 20, -20)
         playSong("baci_perugina2")
@@ -202,13 +207,13 @@ end
 function DogCheck:draw()
     super.draw(self)
 
-    -- Ported the sun out of boredom, uncomment this if you want. - Agent 7
-    --[[
     if self.variant == "summer" then
         Draw.setColor(1, 1, 0)
-        love.graphics.circle("fill", 420 + math.cos(self.summer_siner / 18) * 6, 40 + math.sin(self.summer_siner / 18) * 6, 28 + math.sin(self.summer_siner / 6) * 4, 100)
+        love.graphics.circle("fill",
+            420 + math.cos(self.summer_siner / 18) * 6, 40 + math.sin(self.summer_siner / 18) * 6,
+            28 + math.sin(self.summer_siner / 6) * 4, 100
+        )
     end
-    --]]
 end
 
 function DogCheck:chapter2Script(wait)
@@ -250,7 +255,8 @@ function DogCheck:chapter2Script(wait)
             ---@diagnostic disable-next-line: redefined-local
             Utils.hook(small_dog, "update", function(orig, self, ...)
                 orig(self, ...)
-                if math.abs(self.x) > SCREEN_WIDTH + 3*TILE_WIDTH then
+                local max_dist = 3*TILE_WIDTH
+                if self.x < -max_dist or self.x > SCREEN_WIDTH + max_dist then
                     self:remove()
                 end
             end)

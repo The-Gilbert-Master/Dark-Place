@@ -41,6 +41,11 @@ function Mod:unlockPartyMember(id)
     table.insert(Game:getFlag("party"), id)
 end
 
+-- Removes a party member from selection in the DarkPartyMenu
+function Mod:lockPartyMember(id)
+    Utils.removeFromTable(Game:getFlag("party"), id)
+end
+
 -- Sets a random title and icon to the game window.
 function Mod:funnytitle()
     love.window.setIcon(Kristal.icon)
@@ -70,7 +75,9 @@ function Mod:funnytitle()
         "Counter Strike Source Not Found()",
         "Grian Is Watching You.",
         "PLAY THE RIBBIT MOD, NOW!!!",
-        Mod.info.name
+        Mod.info.name,
+        "Thetaseal",
+        "Undertale Yellow: The Roba Edition"
     }
     local funnytitle_rand = love.math.random(#funnytitles)
     local funnytitle = funnytitles[funnytitle_rand] or "Depa Runts"
